@@ -27,7 +27,7 @@ def cleaning(df):
     columnas_necesarias = ["title", "episodeduration(in minutes)", "genres", "rating"]
     
     # depuración: imprime las columnas antes de eliminar nulos
-    print("Current Columns:", df.columns.tolist())
+    print("Columnas actuales:", df.columns.tolist())
     # eliminacion de nulos
     df.dropna(subset=columnas_necesarias, inplace=True)
     # columna de duración a numérico, forzando errores a NaN para limpieza posterior
@@ -43,14 +43,14 @@ def rating_vs_genre(df):
     Analiza la calificación promedio según el género principal.
     """
     # género principal de la columna 'genres' (primer género listado)
-    df["maingenre"] = df["genres"].apply(lambda x: x.split(",")[0] if isinstance(x, str) else x)
+    df["generoprincipal"] = df["genres"].apply(lambda x: x.split(",")[0] if isinstance(x, str) else x)
     #  género principal y la calificación promedio (de mauyor a menor)
-    promedio_genero = df.groupby("maingenre")["rating"].mean().sort_values(ascending=False)
+    promedio_genero = df.groupby("generoprincipal")["rating"].mean().sort_values(ascending=False)
     # plt horizontal para la calificación promedio por género
     sns.barplot(x=promedio_genero.values, y=promedio_genero.index, palette="viridis")
-    plt.title("Average rating by main genre")
-    plt.xlabel("Average rating")
-    plt.ylabel("Main genre")
+    plt.title("Calificación promedio por género principal")
+    plt.xlabel("Calificación promedio")
+    plt.ylabel("Género principal")
     plt.show()
 
 def rating_vs_duration(df):
@@ -59,8 +59,8 @@ def rating_vs_duration(df):
     """
     # scatterplot para observar la relación entre duración y rating, coloreando por género
     sns.scatterplot(data=df, x="episodeduration(in minutes)", y="rating", hue="genres", legend=False)
-    plt.title("Duration vs Rating")
-    plt.xlabel("Duration (min)")
+    plt.title("Duración vs Calificación")
+    plt.xlabel("Duración (min)")
     plt.ylabel("Rating")
     plt.show()
 
@@ -72,8 +72,8 @@ def rating_vs_show(df):
     df = df.sort_values("rating", ascending=False).head(15)
     # plt horizontal mostrando los ratings de los top 15 shows
     sns.barplot(x="rating", y="title", data=df, palette="coolwarm")
-    plt.title("Top 15 shows with the best ratings")
-    plt.xlabel("Calification")
+    plt.title("Top 15 shows con mejor calificación")
+    plt.xlabel("Calificación")
     plt.ylabel("Show")
     plt.show()
 
@@ -81,12 +81,12 @@ def rating_vs_show_2(df):
     """
     Muestra los shows con peor calificación.
     """
-    # 15 shows con mmenor rating para análisis
+    # 15 shows con menor rating para análisis
     df = df.sort_values("rating", ascending=True).head(15)
     # plt horizontal mostrando los ratings de los top 15 shows
     sns.barplot(x="rating", y="title", data=df, palette="coolwarm")
-    plt.title("Top 15 shows with the lowest ratings")
-    plt.xlabel("Calification")
+    plt.title("Top 15 shows con peor calificación")
+    plt.xlabel("Calificación")
     plt.ylabel("Show")
     plt.show()
 
@@ -98,19 +98,25 @@ def static_charts(df):
     """
     # histograma con KDE para visualizar cómo se distribuyen las calificaciones
     sns.histplot(df["rating"], bins=10, kde=True)
-    plt.title("Grade distribution")
+    plt.title("Distribución de calificaciones")
+    plt.xlabel("Calificaciones")
+    plt.ylabel("Frecuencia")
     plt.show()
 
     # histograma para observar la distribución de la duración de episodios
-    sns.histplot(df["episodeduration(in minutes)"], bins=100, color='orange')
-    plt.title("Episode duration distribution")
+    sns.histplot(df["episodeduration(in minutes)"], bins=10, color='orange')
+    plt.title("Distribución de duración de episodios")
+    plt.xlabel("Duración (minutos)")
+    plt.ylabel(" Frecuencia ")
     plt.show()
 
     # género principal para conteo
-    df["maingenre"] = df["genres"].apply(lambda x: x.split(",")[0])
+    df["generoprincipal"] = df["genres"].apply(lambda x: x.split(",")[0])
     # conteo y gráfico de barras horizontal con frecuencia de cada género principal
-    sns.countplot(y="maingenre", data=df, order=df["maingenre"].value_counts().index)
-    plt.title("Frequency of main genres")
+    sns.countplot(y="generoprincipal", data=df, order=df["generoprincipal"].value_counts().index)
+    plt.title("Frecuencia de géneros principales")
+    plt.xlabel("Cantidad")
+    plt.ylabel("Género principal")
     plt.show()
 
 def genre_vs_year(df):
@@ -130,16 +136,16 @@ def genre_vs_year(df):
     df = df[(df['year_inicio'] >= 2001) & (df['year_inicio'] <= 2019)]
 
     # toma el género principal para agrupar
-    df['maingenre'] = df['genres'].apply(lambda x: x.split(",")[0] if isinstance(x, str) else x)
+    df['generoprincipal'] = df['genres'].apply(lambda x: x.split(",")[0] if isinstance(x, str) else x)
 
     # counter de shows por año y género principal, rellenando valores faltantes con 0
-    conteo = df.groupby(['year_inicio', 'maingenre']).size().unstack(fill_value=0)
+    conteo = df.groupby(['year_inicio', 'generoprincipal']).size().unstack(fill_value=0)
 
     # heatmap para visualizar la cantidad de shows por género y año
     sns.heatmap(conteo.T, cmap="YlGnBu", linewidths=0.5)
-    plt.title("number of shows by genre and year")
-    plt.xlabel("Year")
-    plt.ylabel("Main Genre")
+    plt.title("Cantidad de shows por género y año")
+    plt.xlabel("Año")
+    plt.ylabel("Género principal")
     plt.tight_layout()
     plt.show()
 
@@ -148,9 +154,9 @@ def genre_vs_year(df):
 
     # plt de líneas para mostrar evolución del rating promedio a lo largo de los años
     sns.lineplot(x=rating_por_ano.index, y=rating_por_ano.values, marker="o")
-    plt.title("Average grade per year")
-    plt.xlabel("Year")
-    plt.ylabel("Average rating")
+    plt.title("Promedio de calificación por año")
+    plt.xlabel("Año")
+    plt.ylabel("Calificación promedio")
     plt.tight_layout()
     plt.show()
 
